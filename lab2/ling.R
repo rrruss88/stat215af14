@@ -30,10 +30,10 @@ head(filter(lingdata, STATE == "XX"))
 #according to the zip codes, they're from different states
 #actually just ignore the state column
 
-qsd = rep(NA,length(qcols))
+qentr = rep(NA,length(qcols))
 for (i in qcols) {
-  qsd[i-4] = all.ans[[i+45]]$per/100
+  p <- all.ans[[i+45]]$per/100
+  qentr[i-4] <- (-1)*sum(p*log2(p))
 }
-
-
-ggg
+#hmm there are options nobody selected for 6 of the questions
+#seems like these can be removed harmlessly
