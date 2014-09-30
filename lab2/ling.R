@@ -37,3 +37,25 @@ for (i in qcols) {
 }
 #hmm there are options nobody selected for 6 of the questions
 #seems like these can be removed harmlessly
+
+findempty <- rep(NA, length(qcols))
+for (i in qcols) {
+  findempty[i-4] <- all(all.ans[[i+45]]$per > 0)
+}
+which(findempty == FALSE)     #9,10,14,18,27,32
+
+for (i in qcols) {
+  if (all(all.ans[[i+45]]$per > 0) == FALSE) {      #if some options are empty
+    nonempty <- which(all.ans[[i+45]]$per > 0)      #find the nonempty ones
+    all.ans[[i+45]] <- all.ans[[i+45]][nonempty,]   #discard the empty options
+  }
+}
+
+#now find entropy again
+qentr2 = rep(NA,length(qcols))
+for (i in qcols) {
+  p <- all.ans[[i+45]]$per/100
+  qentr2[i-4] <- (-1)*sum(p*log2(p))
+}
+#these look interesting:
+which(qentr2 > 2)     #1, 10, 12, 20, 21, 25, 30, 33, 35, 36, 39, 45, 47, 50, 53
