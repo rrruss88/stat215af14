@@ -59,3 +59,21 @@ for (i in qcols) {
 }
 #these look interesting:
 which(qentr2 > 2)     #1, 10, 12, 20, 21, 25, 30, 33, 35, 36, 39, 45, 47, 50, 53
+
+####notes from class
+#check stability, some predictive power
+#distance metric for categorical data?
+#pca on categorical data?
+#need to transform data before doing pca
+#build binary matrix - difference between rows makes sense
+#
+#hamming distance for clustering people
+#
+#how to measure difference between 2 questions with different numbers of options?
+#need this to do spectral clustering or MDS
+#some kind of correlation but not ordinary
+#try mutual information - find out what this is
+#difference in entropy of the actual joint and 
+#entropy of joint constructed by multiplying marginals
+#large distance should be high degree of dependence (and the converse)
+
