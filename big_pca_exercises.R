@@ -53,7 +53,10 @@ object.size(m.dense)
 #         observation with covariance matrix m.sparse.  Check that the covariance
 #         is correct.  Generate a plot of the first row showing that adjacent columns
 #         are correlated with one another.
-#generation in progresssss
+
+U <- chol(m.sparse)
+
+
 # Task 2: Use scale() to center and scale the columns.
 # Task 3: Calculate the principal components using the four
 #         functions svd(), irlba(), eigen(), and irlba().
