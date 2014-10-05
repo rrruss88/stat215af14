@@ -92,21 +92,22 @@ rm(i,j)
 sum(num_options)     #468 = 471 - 3 columns of non questions
 
 
-#trying to encode the goddamn binary matrix that has got me stuck for days and 
-#wasted my life and now i feel like i'm stupid and useless, which of course i am.
 #alright so i'm going to do the stupid thing and loop over each question
-lingbin <- lingdata$ID
-for (i in questions) {
-  num_options_i <- dim(all.ans[[i]])[1]
+ling_extended <- lingdata$ID
+for (i in qcols) {
+  num_options_i <- max(lingdata[,i])
   mat_i <- matrix(data=NA, nrow=45436, ncol=num_options_i)
-  for (j in qcols) {
-    for (k in 1:45436) {
-      ans <- lingdata[k,j]
-      mat_i[k,ans] <- 1
-    }
+  for (j in 1:45436) {
+    ans <- lingdata[j,i]
+    mat_i[j,ans] <- 1
   }
-  lingbin <- cbind(lingbin,mat_i) 
+  ling_extended <- cbind(ling_extended,mat_i)
 }
+dim(ling_extended)
+ling_extended[is.na(ling_extended)] <- 0
+
+
+
 
 
 
