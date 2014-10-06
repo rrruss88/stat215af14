@@ -105,9 +105,11 @@ for (i in qcols) {
 }
 dim(ling_extended)
 ling_extended[is.na(ling_extended)] <- 0
+rownames(ling_extended) <- ling_extended[,1]
+ling_extended <- ling_extended[,-1]
 
-
-
+lingdist1 <- dist(ling_extended, method="manhattan")
+#takes forever
 
 
 
