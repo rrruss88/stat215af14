@@ -164,3 +164,21 @@ m + geom_histogram(aes(y = ..density..), color="black", fill="white") +
   geom_density(adjust=0.5, kernel="biweight", size=1, color=2) +
   geom_density(adjust=1, kernel="biweight", size=1, color=3) +
   xlab("Temperature")
+
+#####
+tvh <- ggplot(same_time, aes(x=humidity, y=humid_temp))
+
+tvh + stat_smooth(method="loess",se=FALSE,degree=1,span=0.05,color=2) + 
+  stat_smooth(method="loess",se=FALSE,degree=1,span=0.5,color=3) +
+  stat_smooth(method="loess",se=FALSE,degree=1,span=5,color=4) +
+  geom_point(size=0.5) +  xlab("Humidity") + ylab("Temperature")
+
+tvh + stat_smooth(method="loess",se=FALSE,degree=2,span=0.05,color=2) + 
+  stat_smooth(method="loess",se=FALSE,degree=2,span=0.5,color=3) +
+  stat_smooth(method="loess",se=FALSE,degree=2,span=5,color=4) +
+  geom_point(size=0.5) +  xlab("Humidity") + ylab("Temperature")
+
+tvh + stat_smooth(method="loess",se=FALSE,degree=0,span=0.05,color=2) + 
+  stat_smooth(method="loess",se=FALSE,degree=0,span=0.5,color=3) +
+  stat_smooth(method="loess",se=FALSE,degree=0,span=5,color=4) +
+  geom_point(size=0.5) +  xlab("Humidity") + ylab("Temperature")

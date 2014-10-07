@@ -76,28 +76,34 @@ knitr
 
 \begin_body
 
+\begin_layout Title
+Lab 2 - Linguistic Survey
+\begin_inset Newline newline
+\end_inset
+
+STAT215A, Fall 2014
+\end_layout
+
+\begin_layout Author
+Russell Chen
+\end_layout
+
+\begin_layout Section
+Kernel density plots and smoothing
+\end_layout
+
 \begin_layout Standard
 \begin_inset ERT
 status open
 
 \begin_layout Plain Layout
 
-<<>>=
+<<load, echo=FALSE, message=FALSE>>=
 \end_layout
 
 \begin_layout Plain Layout
 
-opts_chunk$set(comment=NA, message=FALSE, echo=FALSE)
-\end_layout
-
-\begin_layout Plain Layout
-
-#getwd()
-\end_layout
-
-\begin_layout Plain Layout
-
-#load("question_data.RData")
+opts_chunk$set(comment=NA, message=FALSE, echo=FALSE, warning=FALSE)
 \end_layout
 
 \begin_layout Plain Layout
@@ -135,22 +141,6 @@ library(gridExtra)
 
 \end_layout
 
-\begin_layout Title
-Lab 2 - Linguistic Survey
-\begin_inset Newline newline
-\end_inset
-
-STAT215A, Fall 2014
-\end_layout
-
-\begin_layout Author
-Russell Chen
-\end_layout
-
-\begin_layout Section
-Kernel density plots and smoothing
-\end_layout
-
 \begin_layout Subsection
 Kernel density estimate for distribution of temperature
 \end_layout
@@ -172,44 +162,69 @@ status open
 
 \begin_layout Plain Layout
 
-<<chunk1, fig.width=8, fig.height=8>>=
+<<chunk1, fig.width=9, fig.height=9>>=
 \end_layout
 
 \begin_layout Plain Layout
 
-plot1 <- m + geom_histogram(aes(y = ..density..), color="black", fill="white")
- +    geom_density(adjust=2, kernel="biweight", color=1) +    geom_density(adjus
-t=0.5, kernel="biweight", color=2) +   geom_density(adjust=1, kernel="biweight",
- color=3) +   xlab("Temperature")
+plot1 <- m + geom_histogram(aes(y=..density..),color="grey",fill="white") +
+ geom_density(adjust=0.2,kernel="biweight",color=1) + geom_density(adjust=0.8,kern
+el="biweight",color="blue") + geom_density(adjust=2,kernel="biweight",color=3)
+ + geom_density(adjust=5,kernel="biweight",color=3) + xlab("Temperature")
+ + ggtitle("Biweight kernel")
 \end_layout
 
 \begin_layout Plain Layout
 
-plot2 <- m + geom_histogram(aes(y = ..density..), color="black", fill="white")
- +    geom_density(adjust=2, kernel="triangular", color=1) +    geom_density(adj
-ust=0.5, kernel="triangular", color=2) +   geom_density(adjust=1, kernel="triangu
-lar", color=3) +   xlab("Temperature")
 \end_layout
 
 \begin_layout Plain Layout
 
-plot3 <- m + geom_histogram(aes(y = ..density..), color="black", fill="white")
- +    geom_density(adjust=2, kernel="epanechnikov", color=1) +    geom_density(a
-djust=0.5, kernel="epanechnikov", color=2) +   geom_density(adjust=1, kernel="epa
-nechnikov", color=3) +   xlab("Temperature")
+plot2 <- m + geom_histogram(aes(y=..density..),color="grey",fill="white") +geom_dens
+ity(adjust=0.2,kernel="rectangular", color=1) + geom_density(adjust=0.8,kernel="re
+ctangular",color="blue") + geom_density(adjust=2,kernel="rectangular",color=3)
+ + geom_density(adjust=5,kernel="rectangular",color=3) + xlab("Temperature")
+ + ggtitle("Rectangular kernel")
 \end_layout
 
 \begin_layout Plain Layout
 
-plot4 <- m + geom_histogram(aes(y = ..density..), color="black", fill="white")
- +   geom_density(adjust=2, kernel="gaussian", color=1) +    geom_density(adjust
-=0.5, kernel="gaussian", color=2) +   geom_density(adjust=1, kernel="gaussian",
- color=3) +   xlab("Temperature")
+\end_layout
+
+\begin_layout Plain Layout
+
+plot3 <- m + geom_histogram(aes(y=..density..),color="grey",fill="white") +
+ geom_density(adjust=0.2,kernel="epanechnikov", color=1) + geom_density(adjust=0.8
+,kernel="epanechnikov",color="blue") + geom_density(adjust=2,kernel="epanechniko
+v",color=3) + geom_density(adjust=5,kernel="epanechnikov",color=3) + xlab("Tempe
+rature") + ggtitle("Epanechnikov kernel")
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+plot4 <- m + geom_histogram(aes(y=..density..),color="grey",fill="white") +
+ geom_density(adjust=0.2,kernel="gaussian",color=1) +    geom_density(adjust=0.8,k
+ernel="gaussian",color="blue") + geom_density(adjust=2,kernel="gaussian",color=3
+) + geom_density(adjust=5,kernel="gaussian",color=3) + xlab("Temperature")
+ + ggtitle("Gaussian kernel")
+\end_layout
+
+\begin_layout Plain Layout
+
 \end_layout
 
 \begin_layout Plain Layout
 
 grid.arrange(plot1, plot2, plot3, plot4, nrow=2, ncol=2)
+\end_layout
+
+\begin_layout Plain Layout
+
+#the arrangement goes from left to right first then down
 \end_layout
 
 \begin_layout Plain Layout
@@ -233,6 +248,114 @@ status open
 
 \begin_layout Plain Layout
 Normal kernel with various bandwidths.
+ write some more here
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<chunk2, fig.width=6, fig.height=8>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+tvh <- ggplot(same_time, aes(x=humidity, y=humid_temp))
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+plot1 <- tvh + stat_smooth(method="loess",se=FALSE,degree=0,span=0.05,color=2)
+ +    stat_smooth(method="loess",se=FALSE,degree=0,span=0.5,color=3) +  
+ stat_smooth(method="loess",se=FALSE,degree=0,span=5,color=4) +   geom_point(siz
+e=0.5) +  xlab("Humidity") + ylab("Temperature") + ggtitle("Degree 0")
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+plot2 <- tvh + stat_smooth(method="loess",se=FALSE,degree=1,span=0.05,color=2)
+ +    stat_smooth(method="loess",se=FALSE,degree=1,span=0.5,color=3) +  
+ stat_smooth(method="loess",se=FALSE,degree=1,span=5,color=4) +   geom_point(siz
+e=0.5) +  xlab("Humidity") + ylab("Temperature") + ggtitle("Degree 1")
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+plot3 <- tvh + stat_smooth(method="loess",se=FALSE,degree=2,span=0.05,color=2)
+ +    stat_smooth(method="loess",se=FALSE,degree=2,span=0.5,color=3) +  
+ stat_smooth(method="loess",se=FALSE,degree=2,span=5,color=4) +   geom_point(siz
+e=0.5) +  xlab("Humidity") + ylab("Temperature") + ggtitle("Degree 2")
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+grid.arrange(plot1,plot2,plot3,nrow=3,ncol=1)
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Loess smoothers.
  write some more here
 \end_layout
 
