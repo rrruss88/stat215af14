@@ -12,13 +12,15 @@ sum(!is.numeric(lingdata$lat))
 sum(!is.numeric(lingdata$long))
 sum(is.na(lingdata$lat))
 sum(is.na(lingdata$long))
-head(which(is.na(lingdata$long))) #have town, state. could scrape web to fill in
+head(which(is.na(lingdata$long))) 
+#have town, state. could scrape web to fill in but that would take too much time
 all(which(is.na(lingdata$lat)) == which(is.na(lingdata$long))) #TRUE
 #just remove NAs
 lingdata <- lingdata[-which(is.na(lingdata$lat)),]
 #46451 rows left
 
 qcols <- 5:71
+
 
 #now check for rows which have no response at all
 noresponse <- rep(NA,46451)
@@ -36,6 +38,7 @@ all(!is.numeric(lingdata[,qcols]))       #TRUE
 all(!duplicated(lingdata$ID))            #TRUE
 #no duplicates
 
+
 #bad states:
 unique(lingdata$STATE)                   #lots of crap like XX, 94, c), !L
 head(filter(lingdata, STATE == "XX"))
@@ -45,16 +48,14 @@ lingdata <- select(lingdata, -STATE)
 #question columns are now
 qcols <- 4:70
 
-questions <- c(50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,
-               68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,
-               86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,
-               103,104,105,106,107,109,110,111,115,117,118,119,120,121)
-length(qcols) == length(questions)   #TRUE
 
-#hmm there are options nobody selected for 6 of the questions
-#seems like these can be removed harmlessly
+questions <- quest.use$qnum
+length(questions) == length(qcols)   #TRUE
+ans <- all.ans[questions]
+length(ans) == length(questions)     #TRUE
 
-#this doesnt work since some questions in the 50-121 range are removed:
+
+#see if any questions have options which were not selected at all
 findempty <- rep(NA, length(qcols))
 j <- 1
 for (i in questions) {
@@ -62,23 +63,11 @@ for (i in questions) {
   j <- j+1
 }
 rm(i,j)
-emptyq <- questions[findempty == FALSE]     #58,59,63,67,76,81
+emptyq <- questions[findempty == FALSE]     
+#58,59,63,67,76,81
+#actually the percentages could just be very small and were rounded down to 0 
+#we'll check the extended matrix later
 
-for (i in questions) {
-  if (all(all.ans[[i]]$per > 0) == FALSE) {      #if some options are empty
-    nonempty <- which(all.ans[[i]]$per > 0)      #find the nonempty ones
-    all.ans[[i]] <- all.ans[[i]][nonempty,]   #discard the empty options
-  }
-}
-
-#now find entropy again
-qentr2 <- rep(NA,length(qcols))
-for (i in qcols) {
-  p <- all.ans[[i+45]]$per/100
-  qentr2[i-4] <- (-1)*sum(p*log2(p))
-}
-#these look interesting:
-which(qentr2 > 2)     #1, 10, 12, 20, 21, 25, 30, 33, 35, 36, 39, 45, 47, 50, 53
 
 
 #this is dumb as fuck but let's try it to make sure it works
@@ -107,9 +96,39 @@ dim(ling_extended)
 ling_extended[is.na(ling_extended)] <- 0
 rownames(ling_extended) <- ling_extended[,1]
 ling_extended <- ling_extended[,-1]
+#so ling_extended is now the expanded binary form of lingdata (but not binned)
 
-lingdist1 <- dist(ling_extended, method="manhattan")
-#takes forever
+
+#lingdist1 <- dist(ling_extended, method="manhattan")
+#takes forever. tried on arwen and eventually finished after 4 hours 
+#but too large to do mds/isomap with
+#i suppose i'll have to do pca first
+
+
+load("clean.RData")
+load("lingext.RData")
+library(ggplot2)
+#45436 observations of 468 variables
+which(colSums(ling_extended) == 0)  #excellent, none of the columns are all zero
+#brief look at data:
+ggplot(lingdata) + geom_point(aes(x=long,y=lat))
+#looks good. no obvious outliers
+
+#####
+#now find entropy again
+qentr2 <- rep(NA,length(qcols))
+for (i in qcols) {
+  p <- all.ans[[i+45]]$per/100
+  qentr2[i-4] <- (-1)*sum(p*log2(p))
+}
+#these look interesting:
+which(qentr2 > 2)     #1, 10, 12, 20, 21, 25, 30, 33, 35, 36, 39, 45, 47, 50, 53
+#####
+
+#let's look at questions 1 and 10
+
+
+
 
 
 
