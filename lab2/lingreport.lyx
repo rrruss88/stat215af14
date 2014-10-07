@@ -1,0 +1,229 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\begin_modules
+knitr
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 1in
+\topmargin 1in
+\rightmargin 1in
+\bottommargin 1in
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Part*
+Linguistic Data
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+foo1
+\end_layout
+
+\begin_layout Section
+The Data
+\end_layout
+
+\begin_layout Subsection
+Data quality and cleaning
+\end_layout
+
+\begin_layout Standard
+Of the files provided, I mainly checked the raw dataset 
+\family typewriter
+lingdata
+\family default
+ for consistency while assuming 
+\family typewriter
+lingloc
+\family default
+, 
+\family typewriter
+all.ans
+\family default
+ and 
+\family typewriter
+quest.use
+\family default
+ were constructed correctly from this raw data or scraped correctly from
+ the web.
+ In its raw form, 
+\family typewriter
+lingdata
+\family default
+ has 47471 observations of 73 variables.
+ Each observation records one person's answers to 67 questions together
+ with his City, State, ZIP code, latitude, longitude as well as an ID number.
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+I checked that the question columns were all encoded with numeric data and
+ that there were no missing values in those columns.
+ There are also no duplicate ID numbers.
+ The first issue that came up was the missing latitude and longitude for
+ 1020 observations (rows).
+ While city and state data were available for some of these rows, I decided
+ not to write a script to scrape the latitude and longitude of these places
+ from the internet due to time constraints and concerns about accuracy.
+ Instead, I decided to remove the offending rows, leaving 46451 rows.
+ Next, I checked for observations which recorded no response to any of the
+ 67 questions of interest.
+ There were 1015 such observations and these were removed since they contain
+ no linguistic information and there is absolutely no way to recover the
+ missing data.
+ 45436 observations are left at this stage.
+ The state column is also severely corrupted, with values such as XX, 94,
+ C) and !L.
+ A brief look at observations with the state labelled XX shows that they
+ are from different states so this is not a case where all observations
+ from a certain state were mislabelled.
+ The state column was removed.
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+Next, I looked at 
+\family typewriter
+all.ans
+\family default
+ to see whether the percentages for each question summed to 100, within
+ a small tolerance of 0.1 percentage point.
+ All of them did.
+ I looked to see whether there were options for which it is recorded that
+ 0% of the respondents picked.
+ I found 6 such questions but decided against removing them at this stage
+ since the percentages may have been so small as to have been rounded down.
+ After constructing the binary matrix with 
+\begin_inset Formula $n=45436$
+\end_inset
+
+ and 
+\begin_inset Formula $p=468$
+\end_inset
+
+, I checked for the empty options again by looking at the columns, each
+ of which correspond to a single option.
+ None of the columns sum to zero, indicating that there are in fact no empty
+ options.
+ The last bit of data processing I did was to remove observations with a
+ low rate of response to the questions of interest.
+ While these observations still do contain some data, retaining them may
+ give spurious clustering results later since encoding all non-responses
+ as zeroes gives the illusion of agreement on a question where there may
+ in fact be none.
+ 552 respondents who answered less than 60 out of the 67 questions of interest
+ were identified and these rows removed to leave 44884 rows.
+ Finally, a plot of latitude against longitude shows no obvious location
+ outliers so that concludes the data cleaning.
+ 
+\end_layout
+
+\begin_layout Subsection
+Exploratory Data Analysis
+\end_layout
+
+\begin_layout Standard
+foo2.2
+\end_layout
+
+\begin_layout Section
+Dimension reduction methods
+\end_layout
+
+\begin_layout Standard
+foo3
+\end_layout
+
+\begin_layout Section
+Stability of findings to pertubation
+\end_layout
+
+\begin_layout Standard
+foo4
+\end_layout
+
+\begin_layout Section
+Conclusion
+\end_layout
+
+\begin_layout Standard
+foo5
+\end_layout
+
+\end_body
+\end_document
