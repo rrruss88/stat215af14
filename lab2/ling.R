@@ -127,6 +127,7 @@ save.image(file="clean2.RData")
 ggplot(lingdata) + geom_point(aes(x=long,y=lat))
 #looks good. no obvious location outliers
 
+
 ########something strange i tried that's probably silly############
 #brief attempt at finding questions where people disagree the most
 #now find entropy again
@@ -189,6 +190,9 @@ ibar(other3)   #option 1 north, option 2 south
 all.ans[[94]]
 ibar(other4)   #option 1 midwest?
 all.ans[[96]]
+ibar(road1)
+ibar(insect2)
+
 
 
 
@@ -197,6 +201,36 @@ all.ans[[96]]
 #but too large to do mds/isomap with
 #i suppose i'll have to do pca first
 
+ling_pca1 <- prcomp(ling_extended, scale=TRUE)
+save(ling_pca1, file="lingpca1.RData")
+summary(ling_pca1)
+screeplot(ling_pca1)
+biplot(ling_pca1)
+
+lingpca1_2 <- ling_pca1$x[,1:2]
+lingpca1_4 <- ling_pca1$x[,1:4]
+lingpca1_6 <- ling_pca1$x[,1:6]
+lingpca1_8 <- ling_pca1$x[,1:8]
+#explore these PCs in some way
+cor(lingpca1_2,c(lingdata$lat,lingdata$long))
+
+
+####bootstrap to evaluate stability
+set.seed(529)
+lingboot1 <- ling_extended[sample(1:44884,replace=TRUE),]
+lingboot2 <- ling_extended[sample(1:44884,replace=TRUE),]
+
+lingboot1_pca <- prcomp(lingboot1, scale=TRUE)
+lingboot2_pca <- prcomp(lingboot2, scale=TRUE)
+save.image(file="aftersomePCA.RData")
+
+summary(lingboot1_pca)
+screeplot(lingboot1_pca)
+biplot(lingboot1_pca)
+
+summary(lingboot2_pca)
+screeplot(lingboot2_pca)
+biplot(lingboot2_pca)
 
 
 

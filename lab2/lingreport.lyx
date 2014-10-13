@@ -85,7 +85,12 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-foo1
+Data from 47471 respondents to an internet survey of 122 questions about
+ how they use the English language was analyzed.
+ We are only interested in 67 of the questions, which deal with lexical
+ differences rather than phonetic differences.
+ After cleaning and exploring the data, dimension reduction was carried
+ out.
 \end_layout
 
 \begin_layout Section
@@ -184,13 +189,17 @@ all.ans
  low rate of response to the questions of interest.
  While these observations still do contain some data, retaining them may
  give spurious clustering results later since encoding all non-responses
- as zeroes gives the illusion of agreement on a question where there may
- in fact be none.
+ as zeroes gives the illusion of agreement on a question where we actually
+ have missing data and thus, no infomation.
  552 respondents who answered less than 60 out of the 67 questions of interest
  were identified and these rows removed to leave 44884 rows.
  Finally, a plot of latitude against longitude shows no obvious location
  outliers so that concludes the data cleaning.
  
+\begin_inset Newpage pagebreak
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -198,7 +207,210 @@ Exploratory Data Analysis
 \end_layout
 
 \begin_layout Standard
-foo2.2
+Most of the exploratory data analysis was done with linked brushing using
+ the 
+\family typewriter
+iplots
+\family default
+ package.
+ These cannot be reproduced here so results will be illustrated with screenshots
+ instead.
+ First, I will examine a couple of questions separately and investigate
+ their relationship with location.
+ Consider the following question: 
+\end_layout
+
+\begin_layout Quote
+\begin_inset Quotes eld
+\end_inset
+
+What do you call a traffic situation in which several roads meet in a circle
+ and you have to get off at a certain point?
+\begin_inset Quotes erd
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+The options are:
+\end_layout
+
+\begin_layout Itemize
+rotary
+\end_layout
+
+\begin_layout Itemize
+roundabout
+\end_layout
+
+\begin_layout Itemize
+circle
+\end_layout
+
+\begin_layout Itemize
+traffic circle
+\end_layout
+
+\begin_layout Itemize
+traffic circus
+\end_layout
+
+\begin_layout Itemize
+I have no word for this
+\end_layout
+
+\begin_layout Itemize
+other
+\end_layout
+
+\begin_layout Standard
+A linked plot shows that people who chose the first option, rotary, overwhemingl
+y reside in the New England area.
+ On the left side of Figure 1 above, a bar chart of the data from this question
+ is shown.
+ The bar corresponding to the first option is selected (zeroes correspond
+ to a non-response), thereby showing up filled red.
+ The people who chose option 1 then show up in red dots on the scatterplot
+ of latitude vs.
+ longitude to the right.
+ This geographic pattern is quite clear.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename road3opt1.jpg
+	scale 65
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+New Englanders refer to traffic circles as rotaries
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+Consider another question:
+\end_layout
+
+\begin_layout Quote
+\begin_inset Quotes eld
+\end_inset
+
+Which of these terms do you prefer for the small road parallel to the highway?
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The options are:
+\end_layout
+
+\begin_layout Itemize
+frontage road
+\end_layout
+
+\begin_layout Itemize
+service road
+\end_layout
+
+\begin_layout Itemize
+access road
+\end_layout
+
+\begin_layout Itemize
+feeder road
+\end_layout
+
+\begin_layout Itemize
+gateway
+\end_layout
+
+\begin_layout Itemize
+we have them but I have no word for them
+\end_layout
+
+\begin_layout Itemize
+I've never heard of this concept
+\end_layout
+
+\begin_layout Itemize
+other
+\end_layout
+
+\begin_layout Standard
+A similar linked plot shows that respondents who selected option 4 'feeder
+ road' overwhemingly resided in the southern part of Texas.
+ A cursory internet search shows that it is indeed characteristic of people
+ who live in Houston [1].
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename road4opt4.jpg
+	scale 70
+
+\end_inset
+
+
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Use a feeder road to get onto the highway in Houston
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -206,7 +418,108 @@ Dimension reduction methods
 \end_layout
 
 \begin_layout Standard
-foo3
+Working with 468 variables is not easy; it would be great if we could reduce
+ the dimension somewhat in order to carry out further analysis.
+ For most dimension reduction methods, a distance matrix describing the
+ dissimilarities between the observations is needed.
+ Unfortunately, using the 
+\family typewriter
+dist()
+\family default
+ function in R to calculate the manhattan distance (equal to the hamming
+ distance in this case) between rows of the extended binary matrix was not
+ practical due to the memory issues in creating a 
+\begin_inset Formula $44884\times44884$
+\end_inset
+
+ distance matrix.
+ As a result, I was unable to try nonlinear dimension reduction methods
+ like ISOMAP [2].
+ This is unfortunate since it has had previous success in revealing manifold
+ structures embedded in high dimensions, as one might suspect is happening
+ here where a geographic relationship between respondents is embedded in
+ high-dimensional linguistic data.
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+Principal components analysis (PCA) was carried out after centering the
+ data and the screeplot is shown below.
+ Unfortunately, it is not obvious how many principal components should be
+ kept since the eigenvalues decrease very smoothly.
+ The biplot for the PCA is shown on the next page
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<echo=FALSE, fig.height=6, fig.width=7>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+load("lingpca1.RData")
+\end_layout
+
+\begin_layout Plain Layout
+
+screeplot(ling_pca1, main="Screeplot for PCA on the extended binary matrix
+ (centered)")
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<echo=FALSE>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+biplot(ling_pca1, main="Biplot for PCA on the extended binary matrix (centered)"
+)
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -214,15 +527,30 @@ Stability of findings to pertubation
 \end_layout
 
 \begin_layout Standard
-foo4
+I ran PCA on two bootstrap samples of the extended binary matrix.
+ The screeplot, biplots and summaries of both these PCA runs are similar
+ to the original PCA described in the previous pages.
+ This indicates that the PCs are relatively stable.
 \end_layout
 
-\begin_layout Section
-Conclusion
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "key-1"
+
+\end_inset
+
+https://answers.yahoo.com/question/index?qid=20070822220340AA2d5QU
 \end_layout
 
-\begin_layout Standard
-foo5
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "key-4"
+
+\end_inset
+
+http://isomap.stanford.edu/
 \end_layout
 
 \end_body
