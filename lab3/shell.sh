@@ -1,3 +1,3 @@
 #!/bin/bash
 
-R CMD BATCH --no-save code.R kmeans.out
+R CMD BATCH --no-save kcluststability.R

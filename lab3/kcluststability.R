@@ -8,10 +8,10 @@ library(ggplot2)
 
 # set up stuff
 #working.dir <- file.path("?")
-load("lingBinary.Rdata")
+load("lingBinary.RData")
 
 
-nCores <- 4
+nCores <- 10
 registerDoParallel(nCores)
 # ensure independent streams of random numbers with foreach
 RNGkind("L'Ecuyer-CMRG")
