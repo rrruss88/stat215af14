@@ -7,10 +7,10 @@ library(ggplot2)
 
 
 #set up stuff
-working.dir1 <- file.path("?")
-working.dir2 <- file.path("?")
+#working.dir1 <- file.path("?")
+#working.dir2 <- file.path("?")
 load("lingBinary.Rdata")
-sourceCPP(file.path(working.dir, "??.cpp"))
+#sourceCPP(file.path(working.dir, "??.cpp"))
 
 nCores <- 4
 registerDoParallel(nCores)
@@ -66,7 +66,8 @@ ComputeSim <- function(clust1, clust2, k) {
   #computes correlation similarity between two clusters
   #assumed to be ordered and on the same set of data points
   #so that length(clust1) = length(clust2)
-  #the following method of calculating the fowlkes-mallows index is due to wikipedia
+  #the following method of calculating the fowlkes-mallows index 
+  #is due to wikipedia
   clust.len <- length(clust1)
   k.mat <- matrix(rep(NA, k^2), nrow=k, ncol=k)
   for (row in 1:k) {
@@ -81,13 +82,42 @@ ComputeSim <- function(clust1, clust2, k) {
 }
 
 
+cppFunction('double SimC(NumericVector x, NumericVector y) {
+  
+  int n = x.size();
+  int t, r;
+  double a, b, c, z;
+  a = 0.0; b = 0.0; c = 0.0;
+
+  for(t = 0; t < n; t ++){
+      for(r = t + 1; r < n; r ++){
+          if((x[t] == x[r]) && (y[t] == y[r])){
+              a += 1.0;
+          } else if((x[t] == x[r]) && (y[t] != y[r])){
+              b += 1.0;
+          } else if((x[t] != x[r]) && (y[t] == y[r])){
+              c += 1.0;
+          }
+      }
+  }
+
+  z = a / sqrt((a + b) * (a + c));
+  return z;
+}')
+
+set.seed(828)
+foo1 <- sample(1:6, size=19000, replace=T)
+foo2 <- sample(1:6, size=19000, replace=T)
+ddd <- ComputeSim(foo1, foo2, 7)
+fff <- SimC(foo1, foo2)
+
 
 k.similarities <- foreach(k = 2:10, .combine = rbind) %dopar% {
   #k.similarities will be a matrix with 9 rows and 100 columns
   #where each row contains the 100 similarity values calculated for each value of k
   sim <- rep(NA, 100)
   for (i in 1:100) {
-    set.seed(53)   #set.seed(i)
+    #set.seed(53)   #set.seed(i)
     #sample and sort for easy comparison later
     #no need to worry about size = m*num.obs
     #since it is rounded down in the sample function
@@ -99,8 +129,8 @@ k.similarities <- foreach(k = 2:10, .combine = rbind) %dopar% {
     #so we don't have to worry about the intersection being empty
     intersection <- intersect(sub1.index, sub2.index)
     #cluster and immediately extract the clusters since we are only interested in that
-    kclust1 <- kmeans(ling.qdata[sub1.index, ], centers = k)$cluster
-    kclust2 <- kmeans(ling.qdata[sub2.index, ], centers = k)$cluster
+    kclust1 <- kmeans(ling.qdata[sub1.index, ], centers=k, iter.max=35)$cluster
+    kclust2 <- kmeans(ling.qdata[sub2.index, ], centers=k, iter.max=35)$cluster
     kclust1.int <- unname(kclust1[row.names(ling.qdata[intersection, ])])
     kclust2.int <- unname(kclust2[row.names(ling.qdata[intersection, ])])
     #all(names(kclust1.int) %in% names(kclust2.int)) should return true
@@ -114,8 +144,8 @@ k.similarities <- foreach(k = 2:10, .combine = rbind) %dopar% {
 }
 
 
-plot.ecdf(sim)
-qplot(sim, stat="ecdf", geom="step")
+#plot.ecdf(sim)
+#qplot(sim, stat="ecdf", geom="step")
 
 
 save(k.similarities, file="sim.RData")
@@ -128,20 +158,20 @@ save(k.similarities, file="sim.RData")
 
 
 ####some tests and other weird stuff
-foo <- kmeans(ling.qdata, centers = 4)
-foo1.index <- sub1.index[1:100]
-foo2.index <- sub2.index[1:100]
-foo.inters <- intersect(foo1.index, foo2.index)
-foo1 <- kclust1$cluster[1:100]
-foo2 <- kclust2$cluster[1:100]
-#use row.names and as.integer
-#names of clusters are row.names
-#names(foo1) gives foo1.index
-fooxx <- cbind(foo1,foo2) #does not work
-#try lingBinary[names(foo1),]
-
-kclust1[names(kclust2)] #extracts the elements of kclust1 where their 
-fooomit1 <- na.omit(kclust1[names(kclust2)])
-fooomit2 <- na.omit(kclust2[names(kclust1)])
-all(names(fooomit2) %in% names(fooomit1))    #TRUE!!!!
-fooxx <- adjustedRand(kclust1.int, kclust2.int, randMethod="FM")
+# foo <- kmeans(ling.qdata, centers = 4)
+# foo1.index <- sub1.index[1:100]
+# foo2.index <- sub2.index[1:100]
+# foo.inters <- intersect(foo1.index, foo2.index)
+# foo1 <- kclust1$cluster[1:100]
+# foo2 <- kclust2$cluster[1:100]
+# #use row.names and as.integer
+# #names of clusters are row.names
+# #names(foo1) gives foo1.index
+# fooxx <- cbind(foo1,foo2) #does not work
+# #try lingBinary[names(foo1),]
+# 
+# kclust1[names(kclust2)] #extracts the elements of kclust1 where their 
+# fooomit1 <- na.omit(kclust1[names(kclust2)])
+# fooomit2 <- na.omit(kclust2[names(kclust1)])
+# all(names(fooomit2) %in% names(fooomit1))    #TRUE!!!!
+# fooxx <- adjustedRand(kclust1.int, kclust2.int, randMethod="FM")
