@@ -1,0 +1,720 @@
+#LyX 2.1 created this file. For more info see http://www.lyx.org/
+\lyxformat 474
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+\pagestyle{empty} 
+\end_preamble
+\use_default_options true
+\begin_modules
+theorems-ams
+eqs-within-sections
+figs-within-sections
+knitr
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_math auto
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine natbib
+\cite_engine_type authoryear
+\biblio_style plainnat
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date true
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 1in
+\topmargin 1in
+\rightmargin 1in
+\bottommargin 1in
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation skip
+\defskip smallskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle fancy
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Lab 3 - Parallelizing 
+\begin_inset Formula $k$
+\end_inset
+
+-means
+\begin_inset Newline newline
+\end_inset
+
+Stat 215A, Fall 2014
+\end_layout
+
+\begin_layout Author
+Russell Chen
+\end_layout
+
+\begin_layout Section
+Running time comparisons
+\end_layout
+
+\begin_layout Standard
+The following was run on the scf cluster so that timing results are somewhat
+ comparable:
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<eval=FALSE>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+set.seed(387)
+\end_layout
+
+\begin_layout Plain Layout
+
+testclust1 <- sample(1:6, size=45000, replace=TRUE)
+\end_layout
+
+\begin_layout Plain Layout
+
+testclust2 <- sample(1:6, size=45000, replace=TRUE)
+\end_layout
+
+\begin_layout Plain Layout
+
+microbenchmark(ComputeSim(testclust1, testclust2, 6), SimC(testclust1, testclust
+2), times=5)
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Two clustering partitions are simulated, with 6 clusters in each.
+ 
+\family typewriter
+ComputeSim()
+\family default
+ is the function I wrote in R to compute the Fowlkes-Mallows index between
+ the two partitions while 
+\family typewriter
+SimC()
+\family default
+ is a function written in C++ to calculate the same index, although it is
+ implemented with a different algorithm.
+ The output of the last line calling 
+\family typewriter
+microbenchmark
+\family default
+ is:
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+Unit: milliseconds
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="7">
+<features rotate="0" tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+expr
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+min
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+lq
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+median
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+uq
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+max
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+neval
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ComputeSim(testclust1, testclust2, 6)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+44.71918
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+49.12471
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+58.62695
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+104.0415
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+104.3096
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+5
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+SimC(testclust1, testclust2)
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+6237.89078
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+6238.06708
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+6241.31555
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+6244.4172
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+6248.3520
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+5
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+Unexpectedly, the function written in R is much faster than the one written
+ in C++ despite having a rather large variance in running time.
+ This is probably due to the fact that 
+\family typewriter
+ComputeSim()
+\family default
+ only loops through 
+\begin_inset Formula $k$
+\end_inset
+
+ (length 6 in this case) in each of the nested for-loops while 
+\family typewriter
+SimC()
+\family default
+ loops through an entire vector of clusterings (of length 45000 in this
+ case) in each nested for-loop.
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+I do not know why the variance in running times for 
+\family typewriter
+ComputeSim()
+\family default
+ is so large, nor how this can be reduced.
+ Unfortunately, I could not implement 
+\family typewriter
+ComputeSim()
+\family default
+ in C++ to see if a substantial speed-up could be achieved.
+ My guess is that this would be difficult since it already makes extensive
+ use of vectorizing.
+\end_layout
+
+\begin_layout Section
+Choice of 
+\begin_inset Formula $k$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+On the next couple pages is a plot of the histograms of the Fowlkes-Mallows
+ similarity indices for each value of 
+\begin_inset Formula $k$
+\end_inset
+
+ from 2 to 10 together with the empirical c.d.f.s overlaid in one plot, as
+ Figures 3, 6 and 7 in Ben-Hur et al.
+ similarly depict for various other datasets.
+ The authors recommend that in these plots, we should look for a 
+\begin_inset Quotes eld
+\end_inset
+
+transition from a stable clustering to an unstable one.
+\begin_inset Quotes erd
+\end_inset
+
+ For the binary-coded linguistic data provided, it seems that the only stable
+ clustering is for 
+\begin_inset Formula $k=3$
+\end_inset
+
+.
+ By comparison, the histograms for all other values of 
+\begin_inset Formula $k$
+\end_inset
+
+ show unstable partitions.
+ Going by the procedure outlined in the paper, I would say there are 3 clusters
+ in the data.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<echo=FALSE, message=FALSE, warning=FALSE>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+library(ggplot2)
+\end_layout
+
+\begin_layout Plain Layout
+
+library(gridExtra)
+\end_layout
+
+\begin_layout Plain Layout
+
+load("sim08.RData")
+\end_layout
+
+\begin_layout Plain Layout
+
+p1 <- qplot(similarities08[,1], geom="histogram", xlab="k = 2")
+\end_layout
+
+\begin_layout Plain Layout
+
+p2 <- qplot(similarities08[,2], geom="histogram", xlab="k = 3")
+\end_layout
+
+\begin_layout Plain Layout
+
+p3 <- qplot(similarities08[,3], geom="histogram", xlab="k = 4")
+\end_layout
+
+\begin_layout Plain Layout
+
+p4 <- qplot(similarities08[,4], geom="histogram", xlab="k = 5")
+\end_layout
+
+\begin_layout Plain Layout
+
+p5 <- qplot(similarities08[,5], geom="histogram", xlab="k = 6")
+\end_layout
+
+\begin_layout Plain Layout
+
+p6 <- qplot(similarities08[,6], geom="histogram", xlab="k = 7")
+\end_layout
+
+\begin_layout Plain Layout
+
+p7 <- qplot(similarities08[,7], geom="histogram", xlab="k = 8")
+\end_layout
+
+\begin_layout Plain Layout
+
+p8 <- qplot(similarities08[,8], geom="histogram", xlab="k = 9")
+\end_layout
+
+\begin_layout Plain Layout
+
+p9 <- qplot(similarities08[,9], geom="histogram", xlab="k = 10")
+\end_layout
+
+\begin_layout Plain Layout
+
+grid.arrange(p1, p2, p3, p4, p5, p6, p7, p8, p9, nrow=3, ncol=3)
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<echo=FALSE, fig.height=5, fig.width=7, message=FALSE>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+sim08df <- data.frame(sim = as.vector(similarities08), k=gl(10,100)[101:1000])
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(sim08df, aes(sim, colour=k)) + stat_ecdf() + xlab("Fowlkes-Mallows
+ similarity values") + ylab("Empirical CDF")
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Comments on method of assessing stability
+\end_layout
+
+\begin_layout Standard
+The method described in Ben-Hur et al.
+ of assessing the stability of a clustering result is interesting.
+ In particular, I agree with the authors that this method can be used to
+ show evidence of a lack of stable clusters in a dataset, with a caveat
+ described below.
+ However, as demonstrated with the linguistic data, ambiguous cases may
+ still arise where it is not clear what the optimal number of clusters is.
+ Looking at the empirical c.d.f.
+ plot above again, one might argue that between 
+\begin_inset Formula $k=5$
+\end_inset
+
+ and 
+\begin_inset Formula $k=6$
+\end_inset
+
+, the clustering transitions from stable to unstable and we should pick
+ 5 as the optimal number of clusters.
+ The authors acknowledge that there will be situations where a judgement
+ call is necessary, leading them to conclude that this procedure should
+ be viewed 
+\begin_inset Quotes eld
+\end_inset
+
+as a general exploratory tool, and not just as a way of selecting an optimal
+ number of clusters.
+\begin_inset Quotes erd
+\end_inset
+
+ I think it is prudent to take note of this caution that the procedure is
+ not a one-size-fits-all solution for selecting the optimal number of clusters
+ in any given dataset.
+ 
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+One concern I have that was not addressed by the authors is: how do we know
+ that the inner loop is long enough? For the binary-coded linguistic data,
+ the inner loop was chosen to be 100 iterations long.
+ Is it possible that this was not long enough, thereby producing a lot of
+ variation in results? As a brief experiment, I ran the algorithm with a
+ longer inner loop of 300.
+ The resulting empirical c.d.f.
+ plot is shown on the next page.
+ It seems that the transition from unstable to more unstable clustering
+ between 
+\begin_inset Formula $k=5$
+\end_inset
+
+ and 
+\begin_inset Formula $k=6$
+\end_inset
+
+ is ever so slightly clearer.
+ This suggests that the results obtained from this procedure are indeed
+ slightly sensitive to the length of the inner loop.
+ Of course, if we had endless computing power at our disposal, we could
+ run the inner loop 50000 times.
+ Even then, if there is no evidence of a transition, we may still suspect
+ that the inner loop was not long enough to see such a transition clearly.
+ Especially for large datasets (for which computing power is a significant
+ limitation), this undercuts the authors' claim that seeing no transition
+ in the ecdf plot is evidence of absence of natural clusters in the data.
+ 
+\begin_inset Newpage pagebreak
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+<<echo=FALSE, fig.height=5, fig.width=7, message=FALSE>>=
+\end_layout
+
+\begin_layout Plain Layout
+
+load("sim308.RData")
+\end_layout
+
+\begin_layout Plain Layout
+
+sim308df <- data.frame(sim = as.vector(similarities308), k =gl(10,300)[301:3000])
+\end_layout
+
+\begin_layout Plain Layout
+
+ggplot(sim308df, aes(sim, colour=k)) + stat_ecdf() + xlab("Fowlkes-Mallows
+ similarity values") + ylab("Empirical CDF")
+\end_layout
+
+\begin_layout Plain Layout
+
+@
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

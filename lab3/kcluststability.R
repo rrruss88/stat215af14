@@ -6,12 +6,13 @@ library(microbenchmark)
 library(ggplot2)
 
 
-# set up stuff
-#working.dir <- file.path("?")
-load("lingBinary.RData")
+# set up working directory and load data
+working.dir <- file.path("C:/Users/rrruss/Desktop/stat215a/stat215af14/lab3")
+load(file.path(working.dir, "lingBinary.RData"))
 
 
-nCores <- 10
+# set up parallelization
+nCores <- 9
 registerDoParallel(nCores)
 # ensure independent streams of random numbers with foreach
 RNGkind("L'Ecuyer-CMRG")
@@ -20,15 +21,25 @@ RNGkind("L'Ecuyer-CMRG")
 # look at dataset and extract the columns for clustering
 dim(lingBinary)
 ling.qdata <- lingBinary[7:474]
-rm(lingBinary)
+# if memory is an issue, lingBinary can be removed 
+# since it is not needed any more
+#rm(lingBinary) 
 
 
 CMatrix <- function(clust, k) {
-  # clust is a vector encoding which cluster the data point belongs to
-  # k is number of clusters, which should be equal to max(clust)
-  # output is a square symmetric matrix with dimension length(clust)
+  # Creates the C matrix for a given clustering partition,
+  # as defined at the top of page 3 in Ben-Hur et al.
+  # 
+  # Args:
+  #    clust: a vector encoding which cluster the data point belongs to
+  #    k    : number of clusters, which should be equal to max(clust)
+  #
+  # Returns:
+  #    C matrix, which is a square symmetric matrix
+  #    with dimension equal to length(clust)
+  #
   clust.len <- length(clust)
-  # initialize
+  # initialize the matrix with NAs
   c.mat <- matrix(rep(NA, clust.len ^ 2), nrow=clust.len, ncol=clust.len)
   for (i in 1:clust.len) {
     for (j in 1:clust.len) {
@@ -39,15 +50,37 @@ CMatrix <- function(clust, k) {
       }
     }
   }
+  # force the diagonal to be 0s, as specified in Ben-Hur et al.
   diag(c.mat) <- 0
   return(c.mat)
 }
 
 
 ComputeSimSlow <- function(clust1, clust2, k) {
-  # computes correlation similarity between two clusters
-  # assumed to be ordered and on the same set of data points
-  # this is very slow
+  # computes correlation similarity between two clusters (Fowlkes-Mallows index)
+  # the algorithm implemented here is the one specified in Ben-Hur et al.
+  #
+  # this function runs very slowly and should only be used for sanity checking
+  # the results of subsequent implementations of calculating the FM index
+  #
+  #
+  # Requires: CMatrix()
+  #
+  # Args:
+  #    clust1: a numeric vector encoding which cluster the data point belongs to, 
+  #            for partition 1
+  #    clust2: a numeric vector encoding which cluster the data point belongs to, 
+  #            for partition 2
+  # clust1 and clust2 are assumed to be ordered, on the same set of data points
+  # so that clust1[i] and clust2[i] both refer to the same data point i
+  # 
+  #    k     : number of clusters, 
+  #            which should be equal to max(clust1) and max(clust2)
+  #
+  # Returns:
+  #    FM index for a pair of clustering partitions 
+  #    (a real number returned as a numerical value)
+  #
   c.mat1 <- CMatrix(clust1, k)
   c.mat2 <- CMatrix(clust2, k)
   l1.l2 <- sum(c.mat1 * c.mat2)
@@ -59,11 +92,24 @@ ComputeSimSlow <- function(clust1, clust2, k) {
 
 
 ComputeSim <- function(clust1, clust2, k) {
-  # computes correlation similarity between two clusters
-  # assumed to be ordered and on the same set of data points
-  # so that length(clust1) = length(clust2)
-  # the following method of calculating the fowlkes-mallows index 
-  # is due to wikipedia
+  # computes correlation similarity between two clusters (Fowlkes-Mallows index)
+  # the algorithm implemented here is due to wikipedia
+  #
+  # Args:
+  #    clust1: a numeric vector encoding which cluster the data point belongs to, 
+  #            for partition 1
+  #    clust2: a numeric vector encoding which cluster the data point belongs to, 
+  #            for partition 2
+  # clust1 and clust2 are assumed to be ordered, on the same set of data points
+  # so that clust1[i] and clust2[i] both refer to the same data point i
+  # 
+  #    k     : number of clusters, 
+  #            which should be equal to max(clust1) and max(clust2)
+  #
+  # Returns:
+  #    FM index for the pair of clustering partitions 
+  #    (a real number returned as a numerical value)
+  #
   clust.len <- length(clust1)
   k.mat <- matrix(rep(NA, k ^ 2), nrow=k, ncol=k)
   for (rw in 1:k) {
@@ -79,6 +125,22 @@ ComputeSim <- function(clust1, clust2, k) {
 
 
 cppFunction('double SimC(NumericVector clust1, NumericVector clust2) { 
+  /* calculates the Fowlkes-Mallows index for two clustering partitions
+     the algorithm implemented here is described in Ben-Hur et al.
+
+     Args:
+        clust1: a numeric vector encoding which cluster the data point 
+                belongs to, for partition 1
+        clust2: a numeric vector encoding which cluster the data point 
+                belongs to, for partition 2
+     clust1 and clust2 are assumed to be ordered, on the same set of data points
+     so that clust1[i] and clust2[i] both refer to the same data point i
+
+     Returns:
+        FM-index for the pair of clustering partitions
+        (a real number returned as a double) */
+
+  //initialize and define variables
   int i, j, n;
   double x, y, z, sim;
 
@@ -105,12 +167,23 @@ cppFunction('double SimC(NumericVector clust1, NumericVector clust2) {
 
 
 ClustStability <- function(m) {
-  # some more comments about this function
+  # implements the model explorer algorithm outlined in Ben-Hur et al.
+  # for k-means clustering of the binary-coded linguistic data provided
+  # for 9 values of k between 2 and 10 inclusive
+  #
+  # Requires: libarary(foreach), library(doParallel), ComputeSim()
+  # 
+  # Args:
+  #     m: fraction of data to be subsampled
+  #
+  #
+  # Returns:
+  #    a matrix with 100 rows and 9 columns, where each column contains 
+  #    the 100 similarity values calculated for each value of k
+  #
   num.obs <- nrow(ling.qdata)
   k.similarities <- foreach(k=2:10, .combine='cbind') %dopar% {
-    # k.similarities will be a matrix with 100 rows and 9 columns
-    # where each column contains the 100 similarity values 
-    # calculated for each value of k
+    # initialize the vector of similarities with NAs
     sim <- rep(NA, 100)
     for (i in 1:100) {
       # sample and sort for easy comparison later
@@ -123,20 +196,22 @@ ClustStability <- function(m) {
       # error handling in the very unlikely case of an empty intersection
       if (m <= 0.5 && length(intersection) == 0) {
         # no similarity value is inserted into the sim vector
-        # leaving the option for the NA to be subsequently removed
-        # if this warning is thrown
+        # leaving the option for the NA to be subsequently removed or dealt with
+        # in another manner if this warning is thrown
         warning("An intersection is empty. Similarity between clusters cannot be computed.")
       } else {
         # cluster and immediately extract the clusters 
         # since we are only interested in that
-        clust1 <- kmeans(ling.qdata[sub1.index, ], centers=k, iter.max=35)$cluster
-        clust2 <- kmeans(ling.qdata[sub2.index, ], centers=k, iter.max=35)$cluster
+        clust1 <- kmeans(ling.qdata[sub1.index, ], centers=k, iter.max=40)$cluster
+        clust2 <- kmeans(ling.qdata[sub2.index, ], centers=k, iter.max=40)$cluster
         # restrict ourselves to looking at the clusterings on the intersection
+        # followed by computing the similarity for this pair of partitions
         clust1.int <- unname(clust1[row.names(ling.qdata[intersection, ])])
         clust2.int <- unname(clust2[row.names(ling.qdata[intersection, ])])
         sim[i] <- ComputeSim(clust1.int, clust2.int, k)
       }
     }
+    # output sim so that foreach will combine the vectors using cbind()
     sim
   }
   return(k.similarities)
@@ -146,12 +221,9 @@ ClustStability <- function(m) {
 print("Finished defining functions")
 
 
-similarities  <- ClustStability(m = 0.6)
-#plot.ecdf(similarities)
-#qplot(similarities, stat="ecdf", geom="step")
-
-
-save(similarities, file="sim.RData")
+# run and save so that plotting can be done separately
+similarities08  <- ClustStability(m = 0.8)
+save(similarities08, file="sim08.RData")
 
 
 # testing running times
@@ -160,6 +232,3 @@ testclust1 <- sample(1:6, size=45000, replace=TRUE)
 testclust2 <- sample(1:6, size=45000, replace=TRUE)
 microbenchmark(ComputeSim(testclust1, testclust2, 6), 
                SimC(testclust1, testclust2), times=5)
-
-
-#TODO: figure out how to use ggplot to plot multiple ecdfs on one plot
